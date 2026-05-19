@@ -136,6 +136,12 @@ function buscarNotas() {
 
     resultado.classList.remove('hidden');
 
+document.getElementById('nombreAlumno').textContent =
+estudiante['APELLIDOS Y NOMBRES'];
+
+document.getElementById('dniAlumno').textContent =
+'DNI: ' + estudiante['DNI'];
+
 document.getElementById('ind1').textContent =
 'Informe laboratorio 1: ' +
 estudiante['INFORME LABORATORIO 1'];
