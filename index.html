@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Consulta de Notas - 5H</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #eef3f8;
+      color: #10233f;
+    }
+
+    .contenedor {
+      max-width: 960px;
+      margin: 40px auto;
+      background: #ffffff;
+      padding: 32px 30px;
+      border-radius: 20px;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
+    }
+
+    h1 {
+      text-align: center;
+      margin: 0 0 28px;
+      font-size: 36px;
+      color: #12223f;
+    }
+
+    .buscador {
+      display: flex;
+      gap: 14px;
+      margin-bottom: 28px;
+    }
+
+    input {
+      flex: 1;
+      padding: 16px;
+      font-size: 20px;
+      border: 1px solid #c7d3e3;
+      border-radius: 14px;
+      outline: none;
+    }
+
+    input:focus {
+      border-color: #2f64e4;
+      box-shadow: 0 0 0 3px rgba(47, 100, 228, 0.12);
+    }
+
+    button {
+      padding: 0 30px;
+      font-size: 18px;
+      font-weight: bold;
+      border: none;
+      border-radius: 14px;
+      color: white;
+      background: #2f64e4;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #244fc0;
+    }
+
+    .mensaje {
+      display: none;
+      padding: 16px;
+      margin-bottom: 20px;
+      border-radius: 12px;
+      background: #fff4e5;
+      border: 1px solid #ffd08a;
+      color: #7a4a00;
+      font-size: 18px;
+    }
+
+    .datos-estudiante {
+      display: none;
+      background: #f8fafc;
+      border: 1px solid #dfe5ee;
+      border-radius: 16px;
+      padding: 24px 22px;
+      margin-bottom: 20px;
+    }
+
+    .datos-estudiante h2 {
+      margin: 0 0 6px;
+      font-size: 26px;
+      color: #12223f;
+    }
+
+    .datos-estudiante p {
+      margin: 0;
+      font-size: 20px;
+      color: #31415c;
+    }
+
+    .tarjetas {
+      display: none;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+
+    .tarjeta {
+      border-radius: 14px;
+      padding: 22px 20px;
+      min-height: 220px;
+    }
+
+    .indaga {
+      background: #edf5ff;
+      border: 1px solid #add0ff;
+    }
+
+    .explica {
+      background: #ecfff3;
+      border: 1px solid #a9ecc3;
+    }
+
+    .disena {
+      background: #fbf4ff;
+      border: 1px solid #dfc2ff;
+    }
+
+    .tarjeta h3 {
+      margin: 0 0 16px;
+      font-size: 20px;
+    }
+
+    .indaga h3 {
+      color: #1847c7;
+    }
+
+    .explica h3 {
+      color: #05602e;
+    }
+
+    .disena h3 {
+      color: #6b1eb5;
+    }
+
+    .tarjeta p {
+      margin: 8px 0;
+      font-size: 20px;
+      line-height: 1.35;
+      color: #000;
+    }
+
+    .promedio {
+      margin-top: 16px !important;
+      font-weight: bold;
+    }
+
+    @media (max-width: 800px) {
+      .contenedor {
+        margin: 18px;
+        padding: 24px 18px;
+      }
+
+      h1 {
+        font-size: 30px;
+      }
+
+      .buscador {
+        flex-direction: column;
+      }
+
+      button {
+        padding: 16px;
+      }
+
+      .tarjetas {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="contenedor">
+    <h1>Consulta de Notas</h1>
+
+    <div class="buscador">
+      <input id="dni" type="text" placeholder="Ingrese su DNI" maxlength="8" autocomplete="off" />
+      <button onclick="consultarNotas()">Consultar</button>
+    </div>
+
+    <div id="mensaje" class="mensaje"></div>
+
+    <section id="datosEstudiante" class="datos-estudiante">
+      <h2 id="nombreEstudiante"></h2>
+      <p id="dniEstudiante"></p>
+    </section>
+
+    <section id="tarjetas" class="tarjetas">
+      <article class="tarjeta indaga">
+        <h3>Competencia INDAGA</h3>
+        <p>Informe laboratorio 1: <span id="lab1"></span></p>
+        <p>Informe laboratorio 2: <span id="lab2"></span></p>
+        <p class="promedio">Promedio: <span id="promIndaga"></span></p>
+      </article>
+
+      <article class="tarjeta explica">
+        <h3>Competencia EXPLICA</h3>
+        <p>Evaluación escrita 1: <span id="eval1"></span></p>
+        <p>Evaluación escrita 2: <span id="eval2"></span></p>
+        <p>Trabajo en clase: <span id="trabajo"></span></p>
+        <p class="promedio">Promedio: <span id="promExplica"></span></p>
+      </article>
+
+      <article class="tarjeta disena">
+        <h3>Competencia DISEÑA</h3>
+        <p>Prototipo: <span id="prototipo"></span></p>
+        <p class="promedio">Promedio: <span id="promDisena"></span></p>
+      </article>
+    </section>
+  </main>
+
+  <script>
+    const estudiantes = [
+  {
+    "DNI": "73165111",
+    "APELLIDOS Y NOMBRES": "BANCES HUAMAN, MANUEL ALEXANDER",
+    "INFORME LABORATORIO 1": "A",
+    "INFORME LABORATORIO 2": "C",
+    "PROMEDIO COMPETENCIA INDAGA": "B",
+    "EVALUACIÓN ESCRITA 1": "C",
+    "EVALUACION ESCRITA 2": "C",
+    "TRABAJO EN CLASE ": "C",
+    "PROMEDIO COMPETENCIA EXPLICA": "C",
+    "PROTOTIPO": "C",
+    "PROMEDIO COMPETENCIA DISEÑA": "C"
+  },
+  {
+    "DNI": "71352035",
+    "APELLIDOS Y NOMBRES": "BRAVO CHINGUEL, DAVID EMANUEL",
+    "INFORME LABORATORIO 1": "C",
+    "INFORME LABORATORIO 2": "C",
+    "PROMEDIO COMPETENCIA INDAGA": "C",
+    "EVALUACIÓN ESCRITA 1": "C",
+    "EVALUACION ESCRITA 2": "C",
+    "TRABAJO EN CLASE ": "B",
+    "PROMEDIO COMPETENCIA EXPLICA": "C",
+    "PROTOTIPO": "C",
+    "PROMEDIO COMPETENCIA DISEÑA": "C"
+  },
+  {
+    "DNI": "61942049",
+    "APELLIDOS Y NOMBRES": "CARMONA SANCHEZ, JOHNY JESUS",
+    "INFORME LABORATORIO 1": "AD",
+    "INFORME LABORATORIO 2": "AD",
+    "PROMEDIO COMPETENCIA INDAGA": "AD",
+    "EVALUACIÓN ESCRITA 1": "B",
+    "EVALUACION ESCRITA 2": "B",
+    "TRABAJO EN CLASE ": "A",
+    "PROMEDIO COMPETENCIA EXPLICA": "B",
+    "PROTOTIPO": "A",
+    "PROMEDIO COMPETENCIA DISEÑA": "A"
+  },
+  {
+    "DNI": "72343137",
+    "APELLIDOS Y NOMBRES": "CARRANZA SAGUMA, ENOC ELIAS",
+    "INFORME LABORATORIO 1": "C",
+    "INFORME LABORATORIO 2": "C",
+    "PROMEDIO COMPETENCIA INDAGA": "C",
+    "EVALUACIÓN ESCRITA 1": "C",
+    "EVALUACION ESCRITA 2": "C",
+    "TRABAJO EN CLASE ": "C",
+    "PROMEDIO COMPETENCIA EXPLICA": "C",
+    "PROTOTIPO": "C",
+    "PROMEDIO COMPETENCIA DISEÑA": "C"
+  },
+  {
+    "DNI": "74006427",
+    "APELLIDOS Y NOMBRES": "CHASQUEZ CALLE, JOHAN JAMIR",
+    "INFORME LABORATORIO 1": "AD",
+    "INFORME LABORATORIO 2": "AD",
+    "PROMEDIO COMPETENCIA INDAGA": "AD",
+    "EVALUACIÓN ESCRITA 1": "B",
+    "EVALUACION ESCRITA 2": "B",
+    "TRABAJO EN CLASE ": "A",
+    "PROMEDIO COMPETENCIA EXPLICA": "B",
+    "PROTOTIPO": "A",
+    "PROMEDIO COMPETENCIA DISEÑA": "A"
+  },
+  {
+    "DNI": "1273296291001",
+    "APELLIDOS Y NOMBRES": "COPIA TINEO, DARWUIN YOEL",
+    "INFORME LABORATORIO 1": "A",
+    "INFORME LABORATORIO 2": "C",
+    "PROMEDIO COMPETENCIA INDAGA": "B",
+    "EVALUACIÓN ESCRITA 1": "C",
+    "EVALUACION ESCRITA 2": "C",
+    "TRABAJO EN CLASE ": "A",
+    "PROMEDIO COMPETENCIA EXPLICA": "B",
+    "PROTOTIPO": "C",
+    "PROMEDIO COMPETENCIA DISEÑA": "C"
+  },
+  {
+    "DNI": "72825697",
+    "APELLIDOS Y NOMBRES": "CORNEJO CONSTANTINO, DIEGO OMAR",
+    "INFORME LABORATORIO 1": "A",
+    "INFORME LABORATORIO 2": "C",
+    "PROMEDIO COMPETENCIA INDAGA": "C",
+    "EVALUACIÓN ESCRITA 1": "C",
+    "EVALUACION ESCRITA 2": "C",
+    "TRABAJO EN CLASE ": "B",
+    "PROMEDIO COMPETENCIA EXPLICA": "C",
+    "PROTOTIPO": "C",
+    "PROMEDIO COMPETENCIA DISEÑA": "C"
+  },
+  {
+    "DNI": "62578751",
+    "APELLIDOS Y NOMBRES": "CRUZ PALACIOS, JEREMY ANDRES",
+    "INFORME LABORATORIO 1": "C",
+    "INFORME LABORATORIO 2": "C",
+    "PROMEDIO COMPETENCIA INDAGA": "C",
+    "EVALUACIÓN ESCRITA 1": "C",
+    "EVALUACION ESCRITA 2": "C",
+    "TRABAJO EN CLASE ": "C",
+    "PROMEDIO COMPETENCIA EXPLICA": "C",
+    "PROTOTIPO": "B",
+    "PROMEDIO COMPETENCIA DISEÑA": "B"
+  },
+  {
+    "DNI": "77552084",
+    "APELLIDOS Y NOMBRES": "CUSTODIO LOPEZ, STHEFANY ANDREA",
+    "INFORME LABORATORIO 1": "A",
+    "INFORME LABORATORIO 2": "AD",
+    "PROMEDIO COMPETENCIA INDAGA": "AD",
+    "EVALUACIÓN ESCRITA 1": "C",
+    "EVALUACION ESCRITA 2": "B",
+    "TRABAJO EN CLASE ": "A",
+    "PROMEDIO COMPETENCIA EXPLICA": "B",
+    "PROTOTIPO": "B",
+    "PROMEDIO COMPETENCIA DISEÑA": "B"
+  },
+  {
+    "DNI": "72983930",
+    "APELLIDOS Y NOMBRES": "DAVILA INGA, BAYRON FABIAN",
+    "INFORME LABORATORIO 1": "C",
+    "INFORME LABORATORIO 2": "C",
+    "PROMEDIO COMPETENCIA INDAGA": "C",
+    "EVALUACIÓN ESCRITA 1": "C",
+    "EVALUACION ESCRITA 2": "B",
+    "TRABAJO EN CLASE ": "B",
+    "PROMEDIO COMPETENCIA EXPLICA": "B",
+    "PROTOTIPO": "C",
+    "PROMEDIO COMPETENCIA DISEÑA": "C"
+  },
+  {
+    "DNI": "61978419",
+    "APELLIDOS Y NOMBRES": "FIESTAS RAMIREZ, JORDAN WILMER JUNIOR",
+    "INFORME LABORATORIO 1": "C",
+    "INFORME LABORATORIO 2": "C",
+    "PROMEDIO COMPETENCIA INDAGA": "C",
+    "EVALUACIÓN ESCRITA 1": "C",
+    "EVALUACION ESCRITA 2": "B",
+    "TRABAJO EN CLASE ": "B",
+    "PROMEDIO COMPETENCIA EXPLICA": "B",
+    "PROTOTIPO": "C",
+    "PROMEDIO COMPETENCIA DISEÑA": "C"
+  },
+  {
+    "DNI": "73722943",
+    "APELLIDOS Y NOMBRES": "GAMARRA SERRATO, PERLA LUANA",
+    "INFORME LABORATORIO 1": "A",
+    "INFORME LABORATORIO 2": "AD",
+    "PROMEDIO COMPETENCIA INDAGA": "AD",
+    "EVALUACIÓN ESCRITA 1": "B",
+    "EVALUACION ESCRITA 2": "A",
+    "TRABAJO EN CLASE ": "A",
+    "PROMEDIO COMPETENCIA EXPLICA": "A",
+    "PROTOTIPO": "B",
+    "PROMEDIO COMPETENCIA DISEÑA": "B"
+  },
+  {
+    "DNI": "73926304",
+    "APELLIDOS Y NOMBRES": "GODINES PEREZ, MANUEL EDUARDO",
+    "INFORME LABORATORIO 1": "A",
+    "INFORME LABORATORIO 2": "A",
+    "PROMEDIO COMPETENCIA INDAGA": "A",
+    "EVALUACIÓN ESCRITA 1": "C",
+    "EVALUACION ESCRITA 2": "C",
+    "TRABAJO EN CLASE ": "A",
+    "PROMEDIO COMPETENCIA EXPLICA": "B",
+    "PROTOTIPO": "B",
+    "PROMEDIO COMPETENCIA DISEÑA": "B"
+  },
+  {
+    "DNI": "73833233",
+    "APELLIDOS Y NOMBRES": "GUEVARA SANTA MARIA, PIERO YAIR",
+    "INFORME LABORATORIO 1": "AD",
+    "INFORME LABORATORIO 2": "AD",
+    "PROMEDIO COMPETENCIA INDAGA": "AD",
+    "EVALUACIÓN ESCRITA 1": "AD",
+    "EVALUACION ESCRITA 2": "AD",
+    "TRABAJO EN CLASE ": "AD",
+    "PROMEDIO COMPETENCIA EXPLICA": "AD",
+    "PROTOTIPO": "A",
+    "PROMEDIO COMPETENCIA DISEÑA": "A"
+  },
+  {
+    "DNI": "12385630402480",
+    "APELLIDOS Y NOMBRES": "ICANAQUE MEDINA, JUAN FELIPE",
+    "INFORME LABORATORIO 1": "C",
+    "INFORME LABORATORIO 2": "C",
+    "PROMEDIO COMPETENCIA INDAGA": "C",
+    "EVALUACIÓN ESCRITA 1": "C",
+    "EVALUACION ESCRITA 2": "C",
+    "TRABAJO EN CLASE ": "A",
+    "PROMEDIO COMPETENCIA EXPLICA": "B",
+    "PROTOTIPO": "C",
+    "PROMEDIO COMPETENCIA DISEÑA": "C"
+  },
+  {
+    "DNI": "73564669",
+    "APELLIDOS Y NOMBRES": "JUAREZ HUANCAS, ANGELES MILUSKA",
+    "INFORME LABORATORIO 1": "AD",
+    "INFORME LABORATORIO 2": "A",
+    "PROMEDIO COMPETENCIA INDAGA": "AD",
+    "EVALUACIÓN ESCRITA 1": "AD",
+    "EVALUACION ESCRITA 2": "A",
+    "TRABAJO EN CLASE ": "A",
+    "PROMEDIO COMPETENCIA EXPLICA": "A",
+    "PROTOTIPO": "A",
+    "PROMEDIO COMPETENCIA DISEÑA": "A"
+  },
+  {
+    "DNI": "73923109",
+    "APELLIDOS Y NOMBRES": "LEONARDO MONJA, FELIX JAVIER",
+    "INFORME LABORATORIO 1": "A",
+    "INFORME LABORATORIO 2": "A",
+    "PROMEDIO COMPETENCIA INDAGA": "A",
+    "EVALUACIÓN ESCRITA 1": "C",
+    "EVALUACION ESCRITA 2": "A",
+    "TRABAJO EN CLASE ": "B",
+    "PROMEDIO COMPETENCIA EXPLICA": "B",
+    "PROTOTIPO": "B",
+    "PROMEDIO COMPETENCIA DISEÑA": "B"
+  },
+  {
+    "DNI": "73842068",
+    "APELLIDOS Y NOMBRES": "LEYVA FLORES, ADRIANA ITARI",
+    "INFORME LABORATORIO 1": "A",
+    "INFORME LABORATORIO 2": "B",
+    "PROMEDIO COMPETENCIA INDAGA": "A",
+    "EVALUACIÓN ESCRITA 1": "C",
+    "EVALUACION ESCRITA 2": "AD",
+    "TRABAJO EN CLASE ": "A",
+    "PROMEDIO COMPETENCIA EXPLICA": "A",
+    "PROTOTIPO": "B",
+    "PROMEDIO COMPETENCIA DISEÑA": "B"
+  },
+  {
+    "DNI": "62314176",
+    "APELLIDOS Y NOMBRES": "LLONTOP PACHECO, KYARA ALEJANDRA",
+    "INFORME LABORATORIO 1": "B",
+    "INFORME LABORATORIO 2": "AD",
+    "PROMEDIO COMPETENCIA INDAGA": "A",
+    "EVALUACIÓN ESCRITA 1": "B",
+    "EVALUACION ESCRITA 2": "A",
+    "TRABAJO EN CLASE ": "A",
+    "PROMEDIO COMPETENCIA EXPLICA": "A",
+    "PROTOTIPO": "B",
+    "PROMEDIO COMPETENCIA DISEÑA": "B"
+  },
+  {
+    "DNI": "76106408",
+    "APELLIDOS Y NOMBRES": "MOROCHO SALCEDO, CHRISTIAN ANDERSON",
+    "INFORME LABORATORIO 1": "C",
+    "INFORME LABORATORIO 2": "C",
+    "PROMEDIO COMPETENCIA INDAGA": "C",
+    "EVALUACIÓN ESCRITA 1": "C",
+    "EVALUACION ESCRITA 2": "B",
+    "TRABAJO EN CLASE ": "B",
+    "PROMEDIO COMPETENCIA EXPLICA": "B",
+    "PROTOTIPO": "C",
+    "PROMEDIO COMPETENCIA DISEÑA": "C"
+  },
+  {
+    "DNI": "73833326",
+    "APELLIDOS Y NOMBRES": "NOLE HUANCAS, ANGELINA DEL MILAGRO",
+    "INFORME LABORATORIO 1": "A",
+    "INFORME LABORATORIO 2": "B",
+    "PROMEDIO COMPETENCIA INDAGA": "A",
+    "EVALUACIÓN ESCRITA 1": "C",
+    "EVALUACION ESCRITA 2": "A",
+    "TRABAJO EN CLASE ": "A",
+    "PROMEDIO COMPETENCIA EXPLICA": "B",
+    "PROTOTIPO": "B",
+    "PROMEDIO COMPETENCIA DISEÑA": "B"
+  },
+  {
+    "DNI": "73925929",
+    "APELLIDOS Y NOMBRES": "ORDOÑEZ BURGOS, KEISI CAMILA",
+    "INFORME LABORATORIO 1": "A",
+    "INFORME LABORATORIO 2": "A",
+    "PROMEDIO COMPETENCIA INDAGA": "A",
+    "EVALUACIÓN ESCRITA 1": "C",
+    "EVALUACION ESCRITA 2": "C",
+    "TRABAJO EN CLASE ": "A",
+    "PROMEDIO COMPETENCIA EXPLICA": "B",
+    "PROTOTIPO": "B",
+    "PROMEDIO COMPETENCIA DISEÑA": "B"
+  },
+  {
+    "DNI": "62314077",
+    "APELLIDOS Y NOMBRES": "PITA MENDOZA, JAIME ROGERIO",
+    "INFORME LABORATORIO 1": "C",
+    "INFORME LABORATORIO 2": "C",
+    "PROMEDIO COMPETENCIA INDAGA": "C",
+    "EVALUACIÓN ESCRITA 1": "C",
+    "EVALUACION ESCRITA 2": "C",
+    "TRABAJO EN CLASE ": "A",
+    "PROMEDIO COMPETENCIA EXPLICA": "B",
+    "PROTOTIPO": "B",
+    "PROMEDIO COMPETENCIA DISEÑA": "B"
+  },
+  {
+    "DNI": "74098837",
+    "APELLIDOS Y NOMBRES": "PORTILLA DIAZ, JESUS ALEXANDER",
+    "INFORME LABORATORIO 1": "A",
+    "INFORME LABORATORIO 2": "A",
+    "PROMEDIO COMPETENCIA INDAGA": "A",
+    "EVALUACIÓN ESCRITA 1": "AD",
+    "EVALUACION ESCRITA 2": "AD",
+    "TRABAJO EN CLASE ": "A",
+    "PROMEDIO COMPETENCIA EXPLICA": "AD",
+    "PROTOTIPO": "A",
+    "PROMEDIO COMPETENCIA DISEÑA": "A"
+  },
+  {
+    "DNI": "77306569",
+    "APELLIDOS Y NOMBRES": "QUESQUEN LARIOS, ANAHI ESTEFANY",
+    "INFORME LABORATORIO 1": "B",
+    "INFORME LABORATORIO 2": "AD",
+    "PROMEDIO COMPETENCIA INDAGA": "A",
+    "EVALUACIÓN ESCRITA 1": "C",
+    "EVALUACION ESCRITA 2": "B",
+    "TRABAJO EN CLASE ": "A",
+    "PROMEDIO COMPETENCIA EXPLICA": "B",
+    "PROTOTIPO": "B",
+    "PROMEDIO COMPETENCIA DISEÑA": "B"
+  },
+  {
+    "DNI": "73836592",
+    "APELLIDOS Y NOMBRES": "QUIROZ PAREDES, ANGHELO GEORGINIO",
+    "INFORME LABORATORIO 1": "A",
+    "INFORME LABORATORIO 2": "AD",
+    "PROMEDIO COMPETENCIA INDAGA": "AD",
+    "EVALUACIÓN ESCRITA 1": "B",
+    "EVALUACION ESCRITA 2": "A",
+    "TRABAJO EN CLASE ": "A",
+    "PROMEDIO COMPETENCIA EXPLICA": "A",
+    "PROTOTIPO": "B",
+    "PROMEDIO COMPETENCIA DISEÑA": "B"
+  },
+  {
+    "DNI": "71146330",
+    "APELLIDOS Y NOMBRES": "REYES RIVERA, RAYTZA ELIZABETH",
+    "INFORME LABORATORIO 1": "A",
+    "INFORME LABORATORIO 2": "A",
+    "PROMEDIO COMPETENCIA INDAGA": "A",
+    "EVALUACIÓN ESCRITA 1": "C",
+    "EVALUACION ESCRITA 2": "C",
+    "TRABAJO EN CLASE ": "A",
+    "PROMEDIO COMPETENCIA EXPLICA": "B",
+    "PROTOTIPO": "C",
+    "PROMEDIO COMPETENCIA DISEÑA": "C"
+  },
+  {
+    "DNI": "73399868",
+    "APELLIDOS Y NOMBRES": "SANGINES VERA, KELVIN MIGUEL",
+    "INFORME LABORATORIO 1": "C",
+    "INFORME LABORATORIO 2": "B",
+    "PROMEDIO COMPETENCIA INDAGA": "B",
+    "EVALUACIÓN ESCRITA 1": "C",
+    "EVALUACION ESCRITA 2": "C",
+    "TRABAJO EN CLASE ": "C",
+    "PROMEDIO COMPETENCIA EXPLICA": "C",
+    "PROTOTIPO": "B",
+    "PROMEDIO COMPETENCIA DISEÑA": "B"
+  },
+  {
+    "DNI": "73410399",
+    "APELLIDOS Y NOMBRES": "SIESQUEN CESPEDES, NAYELLY VIRGINIA",
+    "INFORME LABORATORIO 1": "AD",
+    "INFORME LABORATORIO 2": "AD",
+    "PROMEDIO COMPETENCIA INDAGA": "AD",
+    "EVALUACIÓN ESCRITA 1": "A",
+    "EVALUACION ESCRITA 2": "A",
+    "TRABAJO EN CLASE ": "A",
+    "PROMEDIO COMPETENCIA EXPLICA": "A",
+    "PROTOTIPO": "A",
+    "PROMEDIO COMPETENCIA DISEÑA": "A"
+  },
+  {
+    "DNI": "73280375",
+    "APELLIDOS Y NOMBRES": "TELLO SANTISTEBAN, MILTÓN JOSEFF",
+    "INFORME LABORATORIO 1": "A",
+    "INFORME LABORATORIO 2": "AD",
+    "PROMEDIO COMPETENCIA INDAGA": "AD",
+    "EVALUACIÓN ESCRITA 1": "B",
+    "EVALUACION ESCRITA 2": "A",
+    "TRABAJO EN CLASE ": "A",
+    "PROMEDIO COMPETENCIA EXPLICA": "A",
+    "PROTOTIPO": "B",
+    "PROMEDIO COMPETENCIA DISEÑA": "B"
+  },
+  {
+    "DNI": "72833219",
+    "APELLIDOS Y NOMBRES": "TELLO VILLEGAS, BRANDO DANIEL JESUS",
+    "INFORME LABORATORIO 1": "C",
+    "INFORME LABORATORIO 2": "C",
+    "PROMEDIO COMPETENCIA INDAGA": "C",
+    "EVALUACIÓN ESCRITA 1": "C",
+    "EVALUACION ESCRITA 2": "C",
+    "TRABAJO EN CLASE ": "C",
+    "PROMEDIO COMPETENCIA EXPLICA": "C",
+    "PROTOTIPO": "B",
+    "PROMEDIO COMPETENCIA DISEÑA": "B"
+  },
+  {
+    "DNI": "73833411",
+    "APELLIDOS Y NOMBRES": "TORRES PERLECHE, ALISSON YHOSUE",
+    "INFORME LABORATORIO 1": "AD",
+    "INFORME LABORATORIO 2": "AD",
+    "PROMEDIO COMPETENCIA INDAGA": "AD",
+    "EVALUACIÓN ESCRITA 1": "C",
+    "EVALUACION ESCRITA 2": "A",
+    "TRABAJO EN CLASE ": "A",
+    "PROMEDIO COMPETENCIA EXPLICA": "B",
+    "PROTOTIPO": "A",
+    "PROMEDIO COMPETENCIA DISEÑA": "A"
+  },
+  {
+    "DNI": "75289679",
+    "APELLIDOS Y NOMBRES": "VASQUEZ TUCTO, KATHERINE NAYELI",
+    "INFORME LABORATORIO 1": "AD",
+    "INFORME LABORATORIO 2": "AD",
+    "PROMEDIO COMPETENCIA INDAGA": "AD",
+    "EVALUACIÓN ESCRITA 1": "A",
+    "EVALUACION ESCRITA 2": "A",
+    "TRABAJO EN CLASE ": "A",
+    "PROMEDIO COMPETENCIA EXPLICA": "A",
+    "PROTOTIPO": "A",
+    "PROMEDIO COMPETENCIA DISEÑA": "A"
+  },
+  {
+    "DNI": "74274083",
+    "APELLIDOS Y NOMBRES": "VERA DELGADO, DANIEL ALEXANDER",
+    "INFORME LABORATORIO 1": "AD",
+    "INFORME LABORATORIO 2": "B",
+    "PROMEDIO COMPETENCIA INDAGA": "A",
+    "EVALUACIÓN ESCRITA 1": "C",
+    "EVALUACION ESCRITA 2": "C",
+    "TRABAJO EN CLASE ": "A",
+    "PROMEDIO COMPETENCIA EXPLICA": "B",
+    "PROTOTIPO": "B",
+    "PROMEDIO COMPETENCIA DISEÑA": "B"
+  },
+  {
+    "DNI": "62431861",
+    "APELLIDOS Y NOMBRES": "YOVERA RIVAS, IVAN LEONARDO",
+    "INFORME LABORATORIO 1": "C",
+    "INFORME LABORATORIO 2": "C",
+    "PROMEDIO COMPETENCIA INDAGA": "C",
+    "EVALUACIÓN ESCRITA 1": "AD",
+    "EVALUACION ESCRITA 2": "A",
+    "TRABAJO EN CLASE ": "A",
+    "PROMEDIO COMPETENCIA EXPLICA": "A",
+    "PROTOTIPO": "B",
+    "PROMEDIO COMPETENCIA DISEÑA": "B"
+  }
+];
+
+    function valor(estudiante, columna) {
+      return estudiante[columna] && estudiante[columna].trim() !== "" ? estudiante[columna] : "-";
+    }
+
+    function consultarNotas() {
+      const dniIngresado = document.getElementById("dni").value.trim();
+      const mensaje = document.getElementById("mensaje");
+      const datosEstudiante = document.getElementById("datosEstudiante");
+      const tarjetas = document.getElementById("tarjetas");
+
+      mensaje.style.display = "none";
+      datosEstudiante.style.display = "none";
+      tarjetas.style.display = "none";
+
+      if (dniIngresado === "") {
+        mensaje.textContent = "Ingrese un DNI.";
+        mensaje.style.display = "block";
+        return;
+      }
+
+      const estudiante = estudiantes.find(e => e["DNI"].trim() === dniIngresado);
+
+      if (!estudiante) {
+        mensaje.textContent = "No se encontró ningún estudiante con ese DNI.";
+        mensaje.style.display = "block";
+        return;
+      }
+
+      document.getElementById("nombreEstudiante").textContent = valor(estudiante, "APELLIDOS Y NOMBRES");
+      document.getElementById("dniEstudiante").textContent = "DNI: " + valor(estudiante, "DNI");
+
+      document.getElementById("lab1").textContent = valor(estudiante, "INFORME LABORATORIO 1");
+      document.getElementById("lab2").textContent = valor(estudiante, "INFORME LABORATORIO 2");
+      document.getElementById("promIndaga").textContent = valor(estudiante, "PROMEDIO COMPETENCIA INDAGA");
+
+      document.getElementById("eval1").textContent = valor(estudiante, "EVALUACIÓN ESCRITA 1");
+      document.getElementById("eval2").textContent = valor(estudiante, "EVALUACION ESCRITA 2");
+      document.getElementById("trabajo").textContent = valor(estudiante, "TRABAJO EN CLASE ");
+      document.getElementById("promExplica").textContent = valor(estudiante, "PROMEDIO COMPETENCIA EXPLICA");
+
+      document.getElementById("prototipo").textContent = valor(estudiante, "PROTOTIPO");
+      document.getElementById("promDisena").textContent = valor(estudiante, "PROMEDIO COMPETENCIA DISEÑA");
+
+      datosEstudiante.style.display = "block";
+      tarjetas.style.display = "grid";
+    }
+
+    document.getElementById("dni").addEventListener("keyup", function(event) {
+      if (event.key === "Enter") {
+        consultarNotas();
+      }
+    });
+  </script>
+</body>
+</html>
